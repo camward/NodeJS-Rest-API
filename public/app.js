@@ -9,14 +9,26 @@ new Vue({
     }
   },
   created() {
-    fetch('/api/todo', {
-      method: 'get'
+    const query = `
+      query {
+        getTodos {
+          id title done createdAt updatedAt
+        }
+      }
+    `
+
+    fetch('/graphql', {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ query })
     })
       .then(res => res.json())
-      .then(todos => {
-        this.todos = todos
+      .then(response => {
+        this.todos = response.data.getTodos
       })
-      .catch(e => console.log(e))
   },
   methods: {
     addTodo() {
@@ -51,12 +63,12 @@ new Vue({
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({done: true})
       })
-          .then(res => res.json())
-          .then(({todo}) => {
-            const idx = this.todos.findIndex(t => t.id === todo.id)
-            this.todos[idx].updatedAt = todo.updatedAt
-          })
-          .catch(e => console.log(e))
+        .then(res => res.json())
+        .then(({todo}) => {
+          const idx = this.todos.findIndex(t => t.id === todo.id)
+          this.todos[idx].updatedAt = todo.updatedAt
+        })
+        .catch(e => console.log(e))
     }
   },
   filters: {
@@ -75,7 +87,7 @@ new Vue({
         options.minute = '2-digit'
         options.second = '2-digit'
       }
-      return new Intl.DateTimeFormat('ru-RU', options).format(new Date(value))
+      return new Intl.DateTimeFormat('ru-RU', options).format(new Date(+value))
     }
   }
 })
